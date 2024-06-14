@@ -1,0 +1,82 @@
+---
+title: "Modelling in R"
+author: "Imogen Poyntz-Wright"
+format: html
+editor: visual
+---
+
+Load libraries
+
+```{r}
+library(readr)
+library(tidyverse) #data wrangling
+library(dplyr) #data wrangling
+library(ggplot2) #plotting graphs
+library(MuMIn) #model selection
+library(lme4) #generalised linear mixed models and linear mixed models
+library(lmtest) #for bptest
+
+```
+
+Load dataset
+
+```{r}
+data <- read.csv("english_education.csv")
+head(data)
+```
+
+Clean dataset
+
+```{r}
+data_cleaned <- na.omit(data)
+#Remove NAs from variables which are going to be modelled
+
+```
+
+Linear model
+
+```{r}
+
+model_lm <- lm(education_score ~ population_2011, data = data_cleaned)
+summary(model_lm)
+
+bptest(model_lm)
+model_lm_res <- residuals(model_lm)
+qqnorm(model_lm_res)
+qqline(model_lm_res, col = "red")
+
+```
+
+Generalised Linear Model
+
+```{r}
+model_glm <- glm(education_score ~ population_2011, family = gaussian, data = data_cleaned)
+summary(model_glm)
+
+bptest(model_glm)
+
+model_glm_redisuals <- residuals(model_glm)
+qqnorm(model_glm_redisuals)
+qqline(model_glm_redisuals, col = "red")
+```
+
+Generalised Linear Mixed Model
+
+```{r}
+model_glmm <- glmer(education_score ~ population_2011 +  rgn11nm + (1 + population_2011 | coastal), family = gaussian(), data = data_cleaned)
+summary(model_glmm)
+
+model_glmm_resid <- residuals(model_glmm)
+qqnorm(model_glmm_resid)
+qqline(model_glmm_resid, col = "red", lwd = 2)
+
+```
+
+Plotting
+
+```{r}
+ggplot(data_cleaned, aes(x = education_score, y = population_2011, fill = coastal)) +geom_point(size = 3, shape = 21) +
+  theme_classic() +
+labs(x= ' Education Score', y = 'Population Size', title = ' Education vs Population size by coastal type', fill = 'Coastal')
+  #theme(axis.text.x = element_text(angle = 45))
+```
